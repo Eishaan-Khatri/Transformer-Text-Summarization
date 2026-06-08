@@ -1,0 +1,14 @@
+{
+  "records": 4,
+  "model": "lead_2_baseline",
+  "mean_rouge1": 0.38474442024270883,
+  "mean_rouge2": 0.12092564298446651,
+  "mean_rougeL": 0.33620684319163463,
+  "mean_compression_ratio": 0.4695491761956238,
+  "scratch_transformer_logits_shape": [
+    1,
+    4,
+    64
+  ],
+  "status": "lightweight local demo only; not the CNN/DailyMail benchmark"
+}

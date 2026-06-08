@@ -17,6 +17,7 @@ from .metrics import compression_ratio
 
 
 ROOT = Path(__file__).resolve().parents[1]
+plt.rcParams["svg.hashsalt"] = "text-summarization"
 
 
 def safe_name(name: str) -> str:
@@ -152,7 +153,7 @@ def plot_metric_bars(rows: list[dict], output_dir: Path) -> None:
     plt.ylim(0, max(max(row.get(metric, 0) for row in rows) for metric in rouge_metrics) + 0.08)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(output_dir / "rouge_comparison.svg")
+    plt.savefig(output_dir / "rouge_comparison.svg", metadata={"Date": None})
     plt.savefig(output_dir / "rouge_comparison.png", dpi=160)
     plt.close()
 
@@ -162,7 +163,7 @@ def plot_metric_bars(rows: list[dict], output_dir: Path) -> None:
     plt.ylabel("Summary tokens / article tokens")
     plt.title("Compression ratio")
     plt.tight_layout()
-    plt.savefig(output_dir / "compression_ratio.svg")
+    plt.savefig(output_dir / "compression_ratio.svg", metadata={"Date": None})
     plt.savefig(output_dir / "compression_ratio.png", dpi=160)
     plt.close()
 
@@ -173,7 +174,7 @@ def plot_metric_bars(rows: list[dict], output_dir: Path) -> None:
     plt.yscale("log")
     plt.title("CPU throughput, log scale")
     plt.tight_layout()
-    plt.savefig(output_dir / "throughput.svg")
+    plt.savefig(output_dir / "throughput.svg", metadata={"Date": None})
     plt.savefig(output_dir / "throughput.png", dpi=160)
     plt.close()
 
@@ -199,7 +200,11 @@ def write_report(rows: list[dict], output_path: Path) -> None:
     lines = [
         "# Summarization Results",
         "",
-        f"I ran this on `{dataset}` with `{sample_size}` test examples. This is a small CPU run, so I use it as a checked experiment, not as a final leaderboard number.",
+        (
+            f"I ran this on `{dataset}` with `{sample_size}` test examples. "
+            "This is a small CPU run. I use it to check the pipeline and compare "
+            "methods on the same examples, not to pretend it is a final benchmark."
+        ),
         "",
         "## Metrics",
         "",
@@ -215,13 +220,13 @@ def write_report(rows: list[dict], output_path: Path) -> None:
         "",
         "## What I take from this run",
         "",
-        "- DistilBART gives the best ROUGE numbers in this small run, but it is slow on CPU.",
-        "- Lead baselines are useful because CNN/DailyMail articles often put important facts early.",
+        "- DistilBART got the best ROUGE numbers in this small run, but it was slow on CPU.",
+        "- Lead baselines are useful because CNN/DailyMail articles often put important facts near the start.",
         "- Baseline throughput is simple sentence slicing, so it should not be read as model inference speed.",
-        "- Compression ratio matters separately from ROUGE; a shorter summary is not automatically better.",
-        "- I would not use this as a final claim until running a larger sample or the full test split.",
+        "- Compression ratio matters separately from ROUGE. A shorter summary is not automatically better.",
+        "- I would run a larger sample before using these numbers as a main project claim.",
     ]
-    output_path.write_text("\n".join(lines), encoding="utf-8")
+    output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main() -> None:

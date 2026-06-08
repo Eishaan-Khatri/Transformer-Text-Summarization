@@ -1,6 +1,6 @@
 # Summarization Results
 
-I ran this on `abisee/cnn_dailymail` with `24` test examples. This is a small CPU run, so I use it as a checked experiment, not as a final leaderboard number.
+I ran this on `abisee/cnn_dailymail` with `24` test examples. This is a small CPU run. I use it to check the pipeline and compare methods on the same examples, not to pretend it is a final benchmark.
 
 ## Metrics
 
@@ -21,8 +21,8 @@ I ran this on `abisee/cnn_dailymail` with `24` test examples. This is a small CP
 
 ## What I take from this run
 
-- DistilBART gives the best ROUGE numbers in this small run, but it is slow on CPU.
-- Lead baselines are useful because CNN/DailyMail articles often put important facts early.
+- DistilBART got the best ROUGE numbers in this small run, but it was slow on CPU.
+- Lead baselines are useful because CNN/DailyMail articles often put important facts near the start.
 - Baseline throughput is simple sentence slicing, so it should not be read as model inference speed.
-- Compression ratio matters separately from ROUGE; a shorter summary is not automatically better.
-- I would not use this as a final claim until running a larger sample or the full test split.
+- Compression ratio matters separately from ROUGE. A shorter summary is not automatically better.
+- I would run a larger sample before using these numbers as a main project claim.

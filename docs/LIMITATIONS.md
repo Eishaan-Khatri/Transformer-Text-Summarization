@@ -33,5 +33,5 @@ inspection, not for beating pretrained summarization models.
 ## Search/Discovery Claim
 
 The project is relevant to content discovery because summaries can become item
-metadata. But I have not yet run a retrieval experiment, so I am not claiming
-that this improves search relevance.
+metadata. I have not run a retrieval experiment yet, so I do not treat this as
+proof that search gets better.

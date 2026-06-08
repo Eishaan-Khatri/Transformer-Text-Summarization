@@ -1,56 +1,64 @@
 # Methodology
 
-## Project Goal
+I kept the project simple on purpose. The goal was not to train a huge model
+from scratch. The goal was to build a complete summarization experiment that I
+could explain line by line.
 
-The project is designed to show both practical summarization evaluation and
-Transformer architecture understanding.
+## Data
 
-The practical layer benchmarks pretrained/fine-tuned summarizers on
-CNN/DailyMail. The architecture layer builds a small encoder-decoder Transformer
-from scratch in NumPy so attention, masks, positions, and logits are inspectable.
+I used the CNN/DailyMail test split through the accessible Hugging Face mirror:
 
-## Benchmark Layer
+```text
+abisee/cnn_dailymail, config 1.0.0
+```
 
-Recommended benchmark components:
+The current checked run uses 24 test examples. That is small, but it is enough
+to check whether the pipeline works and to compare baselines with a transformer
+model on the same rows.
 
-1. Lead-3 or Lead-2 baseline.
-2. `facebook/bart-large-cnn`.
-3. `google/pegasus-cnn_dailymail`.
-4. Optional smaller model for speed comparison.
+## Models
 
-Measured outputs:
+I compared:
 
-- ROUGE-1.
-- ROUGE-2.
-- ROUGE-L or ROUGE-LSUM.
-- Compression ratio: generated summary tokens divided by input article tokens.
-- Batch size.
-- Runtime.
-- Examples per second.
-- Device: CPU or CUDA.
+- Lead-1 baseline
+- Lead-2 baseline
+- Lead-3 baseline
+- `sshleifer/distilbart-cnn-6-6`
 
-## Scratch Transformer Layer
+The lead baselines are not filler. News articles often put key facts in the
+first few sentences, so a serious summarization experiment should check them.
 
-The scratch model is intentionally small. It demonstrates:
+## Metrics
+
+I measured:
+
+- ROUGE-1
+- ROUGE-2
+- ROUGE-L
+- ROUGE-Lsum
+- compression ratio
+- examples per second
+- elapsed time
+
+Compression ratio is:
+
+```text
+summary tokens / article tokens
+```
+
+## Transformer From Scratch
+
+The NumPy Transformer is separate from the benchmark model. It includes:
 
 - sinusoidal positional encoding,
-- causal decoder mask,
 - scaled dot-product attention,
 - multi-head attention,
+- causal decoder masking,
 - encoder self-attention,
 - decoder self-attention,
 - encoder-decoder cross-attention,
-- feed-forward blocks,
-- layer normalization,
-- vocabulary-sized decoder logits.
+- feed-forward layers,
+- layer normalization.
 
-It is not presented as a competitive summarization model. It is an architecture
-inspection component.
-
-## Why This Is Stronger Than A Notebook
-
-A notebook-only project often proves that a tutorial was followed. This rebuild
-separates reusable code, tests, benchmark scripts, generated outputs, and
-claim-control documentation. That makes the project easier to defend in an
-interview.
-
+I use it to show that I understand the architecture. I do not use it as the
+main summarization model.

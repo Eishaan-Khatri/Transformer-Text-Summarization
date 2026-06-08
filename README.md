@@ -1,56 +1,71 @@
-# Text Summarization with Transformers
+# Transformer Text Summarization
 
-Rebuilt NLP project for transformer-based summarization, content representation,
-batch inference, and ROUGE/compression evaluation.
+I built this project to test text summarization models on news articles and to
+understand the Transformer architecture beyond just calling a pipeline.
 
-> Status: rebuilt public version. The original repository was empty, so this
-> project is reconstructed as a stronger and more defensible version. Do not
-> claim old results unless they are reproduced by the full benchmark.
+The project has two parts:
 
-## What This Project Shows
+1. a small CNN/DailyMail benchmark using ROUGE, compression ratio, and CPU
+   throughput;
+2. a mini encoder-decoder Transformer written in NumPy, so the attention and
+   masking steps are visible.
 
-- Pretrained transformer summarization benchmark design for CNN/DailyMail.
-- Lead baseline for comparison.
-- ROUGE-1, ROUGE-2, ROUGE-L, and compression-ratio utilities.
-- Batched inference script for Hugging Face encoder-decoder models.
-- A small NumPy encoder-decoder Transformer built from scratch to demonstrate
-  positional encoding, masking, multi-head attention, cross-attention, and
-  decoder logits.
-- Content-platform mapping for compact metadata, browsing cards, and cold-start
-  item understanding.
+I am not claiming this is a production summarizer or a state-of-the-art model.
+The useful part is the full workflow: baselines, model inference, metrics,
+charts, and implementation of the core Transformer blocks.
 
-## Current Local Verification
+## What I Ran
 
-The current machine does not have PyTorch, Transformers, Datasets, Evaluate, or
-ROUGE installed. The checked-in lightweight layer is dependency-light and has
-been designed so the project still has runnable evidence before heavy model
-downloads.
+Machine/run details:
 
-Run local tests:
+- Dataset: `abisee/cnn_dailymail`
+- Config: `1.0.0`
+- Split: `test`
+- Sample: first 24 test examples
+- Device: CPU
+- Transformer model: `sshleifer/distilbart-cnn-6-6`
+- Batch size for DistilBART: 2
 
-```powershell
-python -m unittest discover -s tests
-```
+## Results
 
-Run the lightweight demo:
+| Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Ex/sec |
+|---|---:|---:|---:|---:|---:|
+| Lead-1 baseline | 0.2242 | 0.0787 | 0.1636 | 0.0558 | 5957.7003 |
+| Lead-2 baseline | 0.2860 | 0.1156 | 0.2110 | 0.1169 | 6679.8408 |
+| Lead-3 baseline | 0.3038 | 0.1212 | 0.2105 | 0.1727 | 7350.4640 |
+| DistilBART CNN | 0.3470 | 0.1399 | 0.2442 | 0.1313 | 0.0731 |
 
-```powershell
-python -m src.run_lightweight_demo
-```
+DistilBART gives the best ROUGE score in this run, but it is much slower on CPU.
+The Lead-3 baseline is still a useful comparison because CNN/DailyMail articles
+often put important facts early.
 
-The demo writes:
+The throughput chart uses a log scale. The lead baselines are just sentence
+slicing, so their speed is not directly comparable to neural model inference.
 
-- `outputs/metrics/lightweight_demo_metrics.json`
-- `outputs/metrics/lightweight_demo_metrics.csv`
-- `outputs/examples/sample_summaries.jsonl`
-- `reports/final_report.md`
+## Charts
 
-These outputs prove the metric, baseline, batching, and scratch Transformer
-components run. They are not the CNN/DailyMail benchmark.
+![ROUGE comparison](outputs/figures/rouge_comparison.png)
 
-## Full CNN/DailyMail Benchmark
+![Compression ratio](outputs/figures/compression_ratio.png)
 
-Install the full dependencies:
+![CPU throughput](outputs/figures/throughput.png)
+
+## Project Structure
+
+| Path | Purpose |
+|---|---|
+| `src/hf_benchmark.py` | Runs the DistilBART benchmark on CNN/DailyMail rows |
+| `src/build_results.py` | Builds baseline results, summary tables, charts, and report |
+| `src/scratch_transformer.py` | Mini Transformer from scratch in NumPy |
+| `src/metrics.py` | ROUGE-style and compression utilities |
+| `tests/` | Unit tests for metrics, data loading, and Transformer internals |
+| `outputs/tables/benchmark_summary.csv` | Main result table |
+| `outputs/figures/` | Generated charts |
+| `reports/final_report.md` | Short written result summary |
+
+## Run It
+
+Install dependencies:
 
 ```powershell
 python -m venv .venv
@@ -58,51 +73,39 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Run a small benchmark:
+Run tests:
 
 ```powershell
-python -m src.hf_benchmark --model facebook/bart-large-cnn --split test --sample-size 128 --batch-size 8
+python -m unittest discover -s tests
 ```
 
-Run a stronger throughput comparison after confirming hardware capacity:
+Run the model benchmark:
 
 ```powershell
-python -m src.hf_benchmark --model facebook/bart-large-cnn --split test --sample-size 1024 --batch-size 32
-python -m src.hf_benchmark --model google/pegasus-cnn_dailymail --split test --sample-size 1024 --batch-size 16
+python -m src.hf_benchmark --model sshleifer/distilbart-cnn-6-6 --dataset abisee/cnn_dailymail --config 1.0.0 --split test --sample-size 24 --batch-size 2 --max-new-tokens 96
 ```
 
-Outputs are written under `outputs/metrics/full_benchmark/`.
+Build tables and charts:
 
-## Repository Map
+```powershell
+python -m src.build_results --run-baselines --sample-size 24
+```
 
-| Path | Purpose |
-|---|---|
-| `src/metrics.py` | ROUGE and compression-ratio utilities |
-| `src/data.py` | JSONL loading, normalization, and batching |
-| `src/lead_baseline.py` | Lead sentence baseline |
-| `src/scratch_transformer.py` | NumPy mini encoder-decoder Transformer |
-| `src/hf_benchmark.py` | Full Hugging Face CNN/DailyMail benchmark runner |
-| `src/run_lightweight_demo.py` | Local demo that works without heavy ML dependencies |
-| `tests/` | Unit tests for metrics, batching, and scratch Transformer behavior |
-| `docs/` | Methodology, limitations, full benchmark runbook, and interview notes |
-| `outputs/` | Generated demo and benchmark outputs |
-| `reports/` | Generated final report |
+## What I Would Improve Next
 
-## Safe Portfolio Claim After Full Benchmark
+- Run the same comparison on a larger test sample.
+- Try BART-large-CNN or PEGASUS on a GPU.
+- Add factuality checks, because ROUGE only measures word overlap.
+- Add a small search/retrieval experiment to test whether summaries help item
+  discovery.
 
-Use this only after running the full benchmark and replacing metrics with the
-measured values:
+## Notes
 
-> Built a reproducible CNN/DailyMail summarization benchmark using Hugging Face
-> transformer models, batched inference, ROUGE/compression evaluation, and a
-> scratch-built mini Transformer to demonstrate attention, masking, and
-> encoder-decoder internals.
+Compression ratio here means:
 
-## Claims Not To Make
+```text
+summary tokens / article tokens
+```
 
-- Do not say this project is state of the art.
-- Do not say the scratch Transformer competes with BART or PEGASUS.
-- Do not claim search relevance improved unless a retrieval experiment is run.
-- Do not reuse the old `ROUGE-L = 0.7` or `5 million words in under 20 seconds`
-  wording without hard evidence.
-
+A lower compression ratio is not automatically better. A very short summary can
+miss important facts.

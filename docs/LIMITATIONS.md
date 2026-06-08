@@ -1,42 +1,37 @@
 # Limitations
 
-## Rebuild Status
+This project is useful, but it has limits.
 
-The public GitHub repository was empty when checked. This version is a rebuilt
-project, not recovered original source code.
+## Small Sample
 
-## Dependency Status
+The checked result uses 24 CNN/DailyMail test examples. That is not enough for a
+final benchmark claim. It is enough to show that the pipeline runs and that the
+baselines/model are evaluated in the same way.
 
-The current local environment used for the first build did not contain PyTorch,
-Transformers, Datasets, Evaluate, or ROUGE. The lightweight demo runs locally,
-but full benchmark claims require installing those dependencies and running the
-CNN/DailyMail benchmark.
+## CPU Run
 
-## Metric Limits
+The DistilBART run was CPU-only. It took 328.18 seconds for 24 examples, so the
+throughput number is not a statement about what the model can do on GPU.
 
-ROUGE measures lexical overlap. It does not prove factual correctness, usefulness
-for search, or reader satisfaction. Good summarization evaluation should also
-inspect entity errors, hallucinations, repetition, and missing context.
+## ROUGE Is Limited
 
-## Compression Limits
+ROUGE measures overlap with the reference summary. It does not prove factual
+correctness. A summary can get a decent ROUGE score and still miss a key fact or
+introduce a wrong detail.
 
-Compression ratio must be defined clearly. This project uses:
+## Compression Is Not Quality
 
-```text
-generated_summary_tokens / input_article_tokens
-```
+The DistilBART run had a compression ratio of 0.1313. That means the generated
+summary was around 13 percent of the input length. This is useful, but a shorter
+summary is not automatically better.
 
-A lower number is not always better. A summary can be short but misleading.
+## Scratch Transformer
 
-## Content-Platform Limits
+The scratch Transformer is a small NumPy implementation. It is for learning and
+inspection, not for beating pretrained summarization models.
 
-Compact summaries can help browsing cards and cold-start metadata, but actual
-search or recommendation lift requires a retrieval/ranking experiment or online
-product data. This project should not claim business impact without that test.
+## Search/Discovery Claim
 
-## Scratch Transformer Limits
-
-The from-scratch Transformer is a small NumPy implementation for learning and
-explanation. It is not a production model and should not be compared directly
-against pretrained models trained on large corpora.
-
+The project is relevant to content discovery because summaries can become item
+metadata. But I have not yet run a retrieval experiment, so I am not claiming
+that this improves search relevance.

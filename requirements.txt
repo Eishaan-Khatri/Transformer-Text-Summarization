@@ -7,4 +7,5 @@ evaluate
 rouge-score
 sentencepiece
 accelerate
-
+matplotlib
+requests

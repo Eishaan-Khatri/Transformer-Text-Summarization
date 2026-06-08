@@ -1,0 +1,5 @@
+model,dataset,sample_size,device,batch_size,rouge1,rouge2,rougeL,rougeLsum,compression_ratio,examples_per_second,elapsed_seconds
+lead_1_baseline,abisee/cnn_dailymail,24,cpu,0,0.2242,0.0787,0.1636,0.1635,0.0558,5957.7003,0.00
+lead_2_baseline,abisee/cnn_dailymail,24,cpu,0,0.2860,0.1156,0.2110,0.2103,0.1169,6679.8408,0.00
+lead_3_baseline,abisee/cnn_dailymail,24,cpu,0,0.3038,0.1212,0.2105,0.2099,0.1727,7350.4640,0.00
+sshleifer/distilbart-cnn-6-6,abisee/cnn_dailymail,24,cpu,2,0.3470,0.1399,0.2442,0.2431,0.1313,0.0731,328.18

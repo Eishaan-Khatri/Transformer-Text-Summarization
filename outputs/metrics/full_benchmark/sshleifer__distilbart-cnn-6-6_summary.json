@@ -1,0 +1,17 @@
+{
+  "model_name": "sshleifer/distilbart-cnn-6-6",
+  "dataset": "abisee/cnn_dailymail",
+  "config": "1.0.0",
+  "split": "test",
+  "sample_size": 24,
+  "offset": 0,
+  "batch_size": 2,
+  "device": "cpu",
+  "elapsed_seconds": 328.1789690000005,
+  "examples_per_second": 0.07313082880700976,
+  "average_compression_ratio": 0.13125735720404047,
+  "rouge1": 0.3470450397481115,
+  "rouge2": 0.13990327029551972,
+  "rougeL": 0.2442385026379031,
+  "rougeLsum": 0.24311626160549032
+}

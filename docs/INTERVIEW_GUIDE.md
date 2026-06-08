@@ -1,32 +1,41 @@
-# Interview Guide
+# Interview Notes
 
-## Short Explanation
+Short version:
 
-I rebuilt this as a summarization benchmark and architecture project. The main
-pipeline evaluates pretrained transformer summarizers on CNN/DailyMail using
-ROUGE, compression ratio, and batch-inference throughput. Separately, I built a
-small Transformer from scratch in NumPy to show I understand attention, masking,
-positional encoding, and encoder-decoder mechanics.
+> I built a summarization benchmark on CNN/DailyMail and compared Lead baselines
+> with a DistilBART summarizer. I measured ROUGE, compression ratio, and CPU
+> throughput. I also wrote a small Transformer from scratch in NumPy so I could
+> explain attention, masking, and encoder-decoder flow.
 
-## Why Not Train A Big Model From Scratch?
+## If Asked About Results
 
-Training a competitive CNN/DailyMail summarizer from scratch is compute-heavy
-and not the honest point of this project. The honest split is:
+The checked run used 24 test examples on CPU.
 
-- pretrained models for quality and realistic inference,
-- scratch Transformer for architecture understanding.
+DistilBART got:
 
-## What I Would Improve Next
+- ROUGE-1: 0.3470
+- ROUGE-2: 0.1399
+- ROUGE-L: 0.2442
+- compression ratio: 0.1313
+- throughput: 0.0731 examples/sec
 
-- Run the full CNN/DailyMail test benchmark on GPU.
-- Add DistilBART or another smaller model for speed/quality tradeoff.
-- Add hallucination and entity-error analysis.
-- Add a retrieval experiment to test whether summaries improve search snippets.
+Lead-3 got:
 
-## Unsafe Answers To Avoid
+- ROUGE-1: 0.3038
+- ROUGE-2: 0.1212
+- ROUGE-L: 0.2105
 
-- "I built a state-of-the-art summarizer."
-- "My scratch Transformer beat BART."
-- "This improved search relevance."
-- "ROUGE proves the summary is factually correct."
+So DistilBART was better on ROUGE, but much slower on CPU.
 
+## If Asked Why I Built A Transformer From Scratch
+
+Because using pretrained models alone does not show the internals. The NumPy
+version helped me understand positional encoding, attention scores, causal
+masking, cross-attention, and decoder logits.
+
+## What Not To Overclaim
+
+- I did not train a competitive summarizer from scratch.
+- I did not run the full CNN/DailyMail test split.
+- I did not prove factual consistency.
+- I did not prove search or recommendation improvement.

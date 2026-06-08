@@ -51,7 +51,7 @@ def run_demo() -> dict:
         "mean_rougeL": sum(row["rougeL"] for row in metric_rows) / len(metric_rows),
         "mean_compression_ratio": sum(row["compression_ratio"] for row in metric_rows) / len(metric_rows),
         "scratch_transformer_logits_shape": list(logits.shape),
-        "status": "lightweight local demo only; not the CNN/DailyMail benchmark",
+        "status": "local demo only; benchmark results come from src.hf_benchmark and src.build_results",
     }
     with output_metrics_json.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
@@ -66,7 +66,7 @@ def run_demo() -> dict:
             [
                 "# Text Summarization with Transformers - Local Demo Report",
                 "",
-                "This report is generated from the dependency-light local demo, not the full CNN/DailyMail benchmark.",
+                "This report is generated from the local demo, not the CNN/DailyMail benchmark.",
                 "",
                 "## Local Demo Metrics",
                 "",
@@ -80,8 +80,8 @@ def run_demo() -> dict:
                 "",
                 "## Interpretation",
                 "",
-                "The checked-in run proves that the data, metric, baseline, and scratch Transformer components execute locally.",
-                "The public portfolio claim should use full benchmark outputs only after running `src.hf_benchmark` with the heavy ML dependencies installed.",
+                "The run checks that the data, metric, baseline, and scratch Transformer components execute locally.",
+                "For benchmark numbers, use `src.hf_benchmark` and `src.build_results`.",
             ]
         ),
         encoding="utf-8",
@@ -95,4 +95,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

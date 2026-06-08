@@ -1,9 +1,6 @@
-# Full Benchmark Runbook
+# Benchmark Runbook
 
-## Purpose
-
-This runbook explains how to reproduce real CNN/DailyMail benchmark metrics.
-Do not publish metric claims until this run has completed and outputs are saved.
+These are the commands I used for the checked result.
 
 ## Setup
 
@@ -13,40 +10,37 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Small Smoke Run
+## Run DistilBART
 
 ```powershell
-python -m src.hf_benchmark --model facebook/bart-large-cnn --split test --sample-size 16 --batch-size 2
+python -m src.hf_benchmark --model sshleifer/distilbart-cnn-6-6 --dataset abisee/cnn_dailymail --config 1.0.0 --split test --sample-size 24 --batch-size 2 --max-new-tokens 96
 ```
 
-This checks dependency, model-download, tokenization, generation, and ROUGE
-plumbing.
+This writes:
 
-## Portfolio-Usable Run
+```text
+outputs/metrics/full_benchmark/sshleifer__distilbart-cnn-6-6_summary.json
+outputs/metrics/full_benchmark/sshleifer__distilbart-cnn-6-6_examples.csv
+```
+
+## Build Baselines, Tables, and Charts
 
 ```powershell
-python -m src.hf_benchmark --model facebook/bart-large-cnn --split test --sample-size 1024 --batch-size 16
-python -m src.hf_benchmark --model google/pegasus-cnn_dailymail --split test --sample-size 1024 --batch-size 8
+python -m src.build_results --run-baselines --sample-size 24
 ```
 
-Record the hardware, date, sample size, model name, batch size, and generated
-JSON files.
+This writes:
 
-## Stronger Run
-
-Only run this if hardware and time allow:
-
-```powershell
-python -m src.hf_benchmark --model facebook/bart-large-cnn --split test --sample-size 11490 --batch-size 32
+```text
+outputs/tables/benchmark_summary.csv
+outputs/figures/rouge_comparison.png
+outputs/figures/compression_ratio.png
+outputs/figures/throughput.png
+outputs/figures/*.svg
+reports/final_report.md
 ```
 
-This uses the full CNN/DailyMail test split and can be slow.
+## Larger Run
 
-## Result Acceptance Rules
-
-- Metrics must come from generated output files.
-- Compression ratio must be reported with its formula.
-- Batch size must be shown with hardware details.
-- Do not round upward.
-- If only a subset is evaluated, say subset size clearly.
-
+For a stronger result, run the same commands with a larger sample size. I would
+not call the current numbers final because 24 examples is small.

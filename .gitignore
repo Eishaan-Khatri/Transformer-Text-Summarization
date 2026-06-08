@@ -5,6 +5,4 @@ __pycache__/
 .mypy_cache/
 data/raw/
 data/cache/
-outputs/metrics/full_benchmark/
 models/
-

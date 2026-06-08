@@ -1,7 +1,7 @@
 # Transformer From Scratch
 
-I added this part because I did not want the project to be only a Hugging Face
-API call.
+I added this because I didn't want the project to be only a Hugging Face model
+call.
 
 The file is:
 
@@ -9,25 +9,33 @@ The file is:
 src/scratch_transformer.py
 ```
 
-It implements a small encoder-decoder Transformer in NumPy.
+It is a small encoder-decoder Transformer written in NumPy.
 
-## Parts Implemented
+Think of the model like a student reading an article and then writing a short
+answer. The encoder reads the article. The decoder writes the answer one token
+at a time. Attention is the part that helps the model decide which words matter
+right now.
 
-| Part | What it does |
+## What Is Inside
+
+| Part | Simple meaning |
 |---|---|
-| Positional encoding | Adds token order information |
-| Scaled dot-product attention | Computes attention scores and weighted values |
-| Causal mask | Stops the decoder from seeing future target tokens |
-| Multi-head attention | Splits attention across multiple heads |
-| Encoder layer | Builds source/article representations |
-| Decoder layer | Uses previous target tokens and source context |
-| Output projection | Produces vocabulary-sized logits |
+| Positional encoding | Tells the model word order |
+| Scaled dot-product attention | Scores which tokens should matter more |
+| Causal mask | Stops the decoder from peeking at future words |
+| Multi-head attention | Lets the model look at text in several ways |
+| Encoder layer | Builds article features |
+| Decoder layer | Uses old output tokens plus article context |
+| Cross-attention | Lets the decoder look back at the article |
+| Output projection | Produces scores for the next token |
 
-## Why This Matters
+## What It Is For
 
-Calling `pipeline("summarization")` is not enough to show understanding. This
-implementation lets me explain where masking happens, why attention is scaled,
-how cross-attention differs from self-attention, and what the decoder outputs.
+This scratch model is for understanding.
 
-It is not trained as a large summarization model. That would need much more
-compute and data.
+It is not trained to beat DistilBART. Training a serious summarizer from
+scratch would need far more data, time, and compute.
+
+The useful part is that I can point to the code and explain where masking
+happens, why attention is scaled, and how the decoder uses the article while
+writing the summary.

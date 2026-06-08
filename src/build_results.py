@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import time
 from pathlib import Path
 
@@ -219,18 +220,53 @@ def markdown_table(rows: list[dict]) -> str:
     return "\n".join([header, divider, *body])
 
 
-def write_report(rows: list[dict], output_path: Path) -> None:
+def _relative_figure_dir(output_path: Path, figures_output_dir: Path) -> str:
+    return Path(os.path.relpath(figures_output_dir, output_path.parent)).as_posix()
+
+
+def write_report(rows: list[dict], output_path: Path, figures_output_dir: Path | None = None) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     dataset = rows[0]["dataset"] if rows else ""
     sample_size = rows[0]["sample_size"] if rows else ""
+    figures_dir = _relative_figure_dir(output_path, figures_output_dir or ROOT / "outputs" / "figures")
+    model_names = {row.get("model_name", "") for row in rows}
+    only_leads = bool(model_names) and all(name.startswith("lead_") for name in model_names)
+    title = "500-Example Baseline Results" if only_leads and int(sample_size or 0) >= 500 else "Summarization Results"
+    intro_lines = (
+        [
+            f"I ran Lead baselines on `{dataset}` with `{sample_size}` test examples.",
+            "",
+            "This report sets a baseline before a bigger Transformer run.",
+        ]
+        if only_leads
+        else [
+            f"I ran this on `{dataset}` with `{sample_size}` test examples.",
+            "",
+            "This is a small CPU run. It checks that the code, metrics, baselines, and charts work together.",
+            "",
+            "It is not a final benchmark.",
+        ]
+    )
+    takeaways = (
+        [
+            "- Lead-3 is the strongest Lead baseline here.",
+            "- Lead-2 is close, with a lower compression ratio.",
+            "- These baselines are very fast because they only slice sentences.",
+            "- This gives a fairer baseline for a future Transformer run.",
+        ]
+        if only_leads
+        else [
+            "- DistilBART scored best on ROUGE in this small run.",
+            "- It was also slow on CPU.",
+            "- Lead-3 is still useful because news articles often start with the main facts.",
+            "- Compression and ROUGE should be read together. A shorter summary is not automatically better.",
+            "- The next serious step is a 500-example neural run on GPU.",
+        ]
+    )
     lines = [
-        "# Summarization Results",
+        f"# {title}",
         "",
-        (
-            f"I ran this on `{dataset}` with `{sample_size}` test examples. "
-            "This is a small CPU run. I use it to check the pipeline and compare "
-            "methods on the same examples, not to pretend it is a final benchmark."
-        ),
+        *intro_lines,
         "",
         "## Metrics",
         "",
@@ -238,21 +274,17 @@ def write_report(rows: list[dict], output_path: Path) -> None:
         "",
         "## Charts",
         "",
-        "![ROUGE comparison](../outputs/figures/rouge_comparison.png)",
+        f"![ROUGE comparison]({figures_dir}/rouge_comparison.png)",
         "",
-        "![Compression ratio](../outputs/figures/compression_ratio.png)",
+        f"![Compression ratio]({figures_dir}/compression_ratio.png)",
         "",
-        "![CPU throughput](../outputs/figures/throughput.png)",
+        f"![CPU throughput]({figures_dir}/throughput.png)",
         "",
-        "![Latency per example](../outputs/figures/latency_per_example.png)",
+        f"![Latency per example]({figures_dir}/latency_per_example.png)",
         "",
-        "## What I take from this run",
+        "## What I Take From This Run",
         "",
-        "- DistilBART got the best ROUGE numbers in this small run, but it was slow on CPU.",
-        "- Lead baselines are useful because CNN/DailyMail articles often put important facts near the start.",
-        "- Baseline throughput is simple sentence slicing, so it should not be read as model inference speed.",
-        "- Compression ratio matters separately from ROUGE. A shorter summary is not automatically better.",
-        "- I would run a larger sample before using these numbers as a main project claim.",
+        *takeaways,
     ]
     output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -286,7 +318,7 @@ def main() -> None:
         raise RuntimeError(f"No summary JSON files found in {output_dir}.")
     write_summary_table(rows, ROOT / args.table_output)
     plot_metric_bars(rows, ROOT / args.figures_output)
-    write_report(rows, ROOT / args.report_output)
+    write_report(rows, ROOT / args.report_output, ROOT / args.figures_output)
     print(json.dumps({"models": [row["model_name"] for row in rows], "rows": len(rows)}, indent=2))
 
 

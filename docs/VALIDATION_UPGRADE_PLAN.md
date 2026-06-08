@@ -1,49 +1,50 @@
 # Validation Upgrade Plan
 
-This project should support a content-discovery story, but it should not
-dominate the resume yet.
+This project is useful, but it still has a ceiling.
 
-The repo is stronger now than it was, but the main weakness is still clear: the
-Transformer model runs are small because this machine is CPU-only.
+Right now it shows that I can build the workflow. It does not yet prove that I
+ran a serious large-model benchmark.
 
-## What Is Proven Now
+The reason is simple: this machine is CPU-only. DistilBART already takes about
+14 seconds per example here. BART-large-CNN and PEGASUS would be slower.
 
-| Check | Status | Evidence |
+## What Is Already Done
+
+| Check | Status | File |
 |---|---|---|
-| 500-example Lead baseline benchmark | Done | `outputs/tables/baseline_500_summary.csv` |
-| 50-example DistilBART run | Done | `outputs/metrics/distilbart_50_review/sshleifer__distilbart-cnn-6-6_summary.json` |
-| Latency per example | Done | summary JSON files and benchmark CSVs |
-| 50-row manual review sheet | Created | `outputs/error_analysis/distilbart_50_manual_review_template.csv` |
-| Summary tags and similar-item candidates | Created | `outputs/content_discovery/distilbart_50/` |
-| Labelled retrieval metric | Not done | CNN/DailyMail rows used here do not expose category/genre labels |
-| BART-large-CNN 500-example run | Not done | needs GPU or long CPU run |
-| PEGASUS 500-example run | Not done | needs GPU or long CPU run |
+| Lead baselines on 500 examples | Done | `outputs/tables/baseline_500_summary.csv` |
+| DistilBART on 50 examples | Done | `outputs/metrics/distilbart_50_review/` |
+| Latency per example | Done | summary JSON files and CSV tables |
+| Manual review sheet | Ready | `outputs/error_analysis/distilbart_50_manual_review_template.csv` |
+| Summary tags and neighbors | Done | `outputs/content_discovery/distilbart_50/` |
+| Labelled retrieval score | Not done | no labels in the current rows |
+| BART-large-CNN on 500 examples | Not done | needs GPU or a long CPU run |
+| PEGASUS on 500 examples | Not done | needs GPU or a long CPU run |
 
-## Actual Larger Baseline Results
+## 500-Example Baseline Results
 
-These are real 500-example CNN/DailyMail baseline results from this repo.
+These are real results from this repo.
 
-| Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Latency sec/ex | Ex/sec |
+| Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Ex/sec |
+|---|---:|---:|---:|---:|---:|
+| Lead-1 | 0.2377 | 0.0785 | 0.1734 | 0.0554 | 9881.2667 |
+| Lead-2 | 0.2981 | 0.1126 | 0.2058 | 0.1096 | 10618.0783 |
+| Lead-3 | 0.3014 | 0.1187 | 0.2070 | 0.1612 | 10151.2331 |
+
+## 50-Example DistilBART Review Run
+
+This run is real too, but it is small.
+
+| Model | Examples | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Latency sec/ex |
 |---|---:|---:|---:|---:|---:|---:|
-| Lead-1 | 0.2377 | 0.0785 | 0.1734 | 0.0554 | 0.0001 | 9881.2667 |
-| Lead-2 | 0.2981 | 0.1126 | 0.2058 | 0.1096 | 0.0001 | 10618.0783 |
-| Lead-3 | 0.3014 | 0.1187 | 0.2070 | 0.1612 | 0.0001 | 10151.2331 |
+| DistilBART CNN | 50 | 0.3468 | 0.1547 | 0.2583 | 0.1219 | 14.3736 |
 
-## Actual DistilBART Review Run
+At this speed, 500 DistilBART examples would take about 2 hours on this CPU.
+That estimate does not include BART-large-CNN or PEGASUS.
 
-This is a real 50-example CPU run. It is useful for error review, but it is not
-a final benchmark.
+## What A Stronger Run Should Include
 
-| Model | Examples | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Latency sec/ex | Ex/sec |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| DistilBART CNN | 50 | 0.3468 | 0.1547 | 0.2583 | 0.1219 | 14.3736 | 0.0695 |
-
-At this speed, 500 DistilBART examples would take about 2 hours on this CPU
-before adding BART-large-CNN or PEGASUS.
-
-## Target Benchmark
-
-For a serious resume claim, run at least 500 examples. Better: 1,000 examples.
+For a better resume claim, run at least 500 examples.
 
 Models:
 
@@ -63,12 +64,11 @@ Metrics:
 - compression ratio
 - latency per example
 - examples per second
-- elapsed time
+- total time
 
-## Commands For A 500-Example GPU Run
+## Command For A GPU Machine
 
-Use these commands on a machine with CUDA. Running this full suite on CPU will
-be slow.
+Use this on a machine with CUDA:
 
 ```powershell
 python -m src.run_benchmark_suite `
@@ -85,15 +85,15 @@ python -m src.run_benchmark_suite `
 
 For 1,000 examples, change `--sample-size 500` to `--sample-size 1000`.
 
-## Manual Error Review
+## Manual Review
 
-The 50-row review sheet already exists:
+The review sheet is already here:
 
 ```text
 outputs/error_analysis/distilbart_50_manual_review_template.csv
 ```
 
-Review categories:
+Mark these columns with `yes` when needed:
 
 - missing key fact
 - hallucination
@@ -101,54 +101,30 @@ Review categories:
 - repetition
 - over-compression
 
-After filling the sheet, summarize it with:
+After filling it, run the summary script.
 
-```powershell
-python -m src.summarize_error_review `
-  --input outputs/error_analysis/distilbart_50_manual_review_template.csv `
-  --output-json outputs/error_analysis/distilbart_50_manual_review_summary.json `
-  --output-csv outputs/error_analysis/distilbart_50_manual_review_summary.csv
-```
+Don't claim an error rate until the sheet is filled.
 
-Do not claim "hallucination/error rate under 8%" until that filled review sheet
-actually supports it.
+## Content Discovery
 
-## Content-Discovery Bridge
-
-The bridge output already exists for the 50 DistilBART summaries:
+The repo already creates tags and nearby items from summaries:
 
 ```text
-outputs/content_discovery/distilbart_50/summary_tags.csv
-outputs/content_discovery/distilbart_50/summary_neighbors.csv
-outputs/content_discovery/distilbart_50/retrieval_summary.json
+outputs/content_discovery/distilbart_50/
 ```
 
-What it does:
+That is a useful start.
 
-- creates tags from generated summaries,
-- builds simple TF-IDF summary embeddings,
-- retrieves similar items by summary similarity,
-- saves top-k neighbors.
+It is not proof that search got better. To prove that, I need topic labels,
+genre labels, editorial sections, or search queries.
 
-What it does not prove yet:
+## Future Bullets
 
-- search relevance improved,
-- recommendations improved,
-- category-level retrieval works.
+These are future bullets, not current claims:
 
-To prove retrieval properly, the dataset needs reliable labels such as topic,
-category, genre, or editorial section. The CNN/DailyMail rows used here do not
-provide those labels through the current data source.
+- Built a CNN/DailyMail benchmark with Lead baselines, DistilBART, and
+  BART-large-CNN over 500 examples.
+- Reached ROUGE-1 0.423, ROUGE-2 0.201, and ROUGE-L 0.311 with BART-large-CNN.
+- Finished a 50-example manual review with error flags under 8 percent.
 
-## Future CV Bullets Only If True
-
-These bullets are good only after the matching evidence exists in the repo:
-
-- Built a CNN/DailyMail summarization benchmark with Lead baselines,
-  DistilBART, and BART-large-CNN over a 500-example evaluation run.
-- Achieved ROUGE-1 0.423, ROUGE-2 0.201, and ROUGE-L 0.311 with
-  BART-large-CNN at 21.6 percent average compression.
-- Completed a 50-example manual error review and kept hallucination/error flags
-  under 8 percent.
-
-Right now, those bullets are targets, not claims.
+Use them only if the repo later has the exact files to support them.

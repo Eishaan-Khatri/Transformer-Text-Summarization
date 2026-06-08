@@ -1,6 +1,10 @@
 # Benchmark Runbook
 
-These are the commands I used for the checked result.
+This file is the "how to rerun it" note.
+
+The short version: the repo has a small checked model run, a 500-example
+baseline run, and a 50-example DistilBART review run. A serious BART-large-CNN
+or PEGASUS run should be done on GPU.
 
 ## Setup
 
@@ -10,7 +14,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Run DistilBART
+## Small DistilBART Run
 
 ```powershell
 python -m src.hf_benchmark --model sshleifer/distilbart-cnn-6-6 --dataset abisee/cnn_dailymail --config 1.0.0 --split test --sample-size 24 --batch-size 2 --max-new-tokens 96
@@ -23,27 +27,23 @@ outputs/metrics/full_benchmark/sshleifer__distilbart-cnn-6-6_summary.json
 outputs/metrics/full_benchmark/sshleifer__distilbart-cnn-6-6_examples.csv
 ```
 
-## Build Baselines, Tables, and Charts
+## Build The Main Tables And Charts
 
 ```powershell
 python -m src.build_results --run-baselines --sample-size 24
 ```
 
-This writes:
+This writes the main table, charts, and report:
 
 ```text
 outputs/tables/benchmark_summary.csv
-outputs/figures/rouge_comparison.png
-outputs/figures/compression_ratio.png
-outputs/figures/throughput.png
-outputs/figures/*.svg
+outputs/figures/
 reports/final_report.md
 ```
 
-## 500-Example Lead Baseline Run
+## 500-Example Lead Baselines
 
-This command writes a larger baseline-only run without overwriting the main
-24-example report:
+This run gives a stronger baseline check without overwriting the main report.
 
 ```powershell
 python -m src.build_results `
@@ -57,8 +57,7 @@ python -m src.build_results `
 
 ## 50-Example DistilBART Review Run
 
-This command creates the model outputs used for manual error review and content
-discovery:
+This creates model outputs for manual review and content-discovery files.
 
 ```powershell
 python -m src.hf_benchmark `
@@ -72,7 +71,7 @@ python -m src.hf_benchmark `
   --output-dir outputs/metrics/distilbart_50_review
 ```
 
-Then create the review sheet:
+Create the review sheet:
 
 ```powershell
 python -m src.create_error_review_template `
@@ -82,7 +81,7 @@ python -m src.create_error_review_template `
   --review-size 50
 ```
 
-And create the summary-tag / neighbor retrieval files:
+Create tags and similar items:
 
 ```powershell
 python -m src.content_discovery `
@@ -91,9 +90,9 @@ python -m src.content_discovery `
   --output-dir outputs/content_discovery/distilbart_50
 ```
 
-## Larger Run
+## Bigger GPU Run
 
-For a stronger result, use `src.run_benchmark_suite` on a CUDA machine:
+Use this on a CUDA machine:
 
 ```powershell
 python -m src.run_benchmark_suite `
@@ -108,5 +107,5 @@ python -m src.run_benchmark_suite `
   --report-output reports/full_benchmark_500_report.md
 ```
 
-The current machine is CPU-only, so I would not treat the current neural-model
-numbers as a final benchmark.
+The current machine is CPU-only, so I wouldn't treat the current neural-model
+numbers as final.

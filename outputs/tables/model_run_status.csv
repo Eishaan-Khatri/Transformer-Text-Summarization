@@ -3,7 +3,7 @@ Lead-1/2/3 500-example benchmark,done,outputs/tables/baseline_500_summary.csv,Re
 DistilBART 50-example run,done,outputs/metrics/distilbart_50_review/sshleifer__distilbart-cnn-6-6_summary.json,Real CPU run for review workflow and timing estimate
 Manual error review template,created,outputs/error_analysis/distilbart_50_manual_review_template.csv,Needs human flags before error-rate claims
 Summary tags and neighbors,done,outputs/content_discovery/distilbart_50/,Uses TF-IDF over generated summaries
-Labelled retrieval metric,not_done,outputs/content_discovery/distilbart_50/retrieval_summary.json,Current CNN/DailyMail rows do not expose category or genre labels
+Labelled retrieval metric,not_done,outputs/content_discovery/distilbart_50/retrieval_summary.json,Current CNN/DailyMail rows do not include category or genre labels
 DistilBART 500-example benchmark,not_done,,CPU estimate is about two hours from measured 50-example run
 BART-large-CNN 500-example benchmark,not_done,,Not cached locally and no CUDA available
 PEGASUS 500-example benchmark,not_done,,Not cached locally and no CUDA available

@@ -1,44 +1,47 @@
 # Transformer Text Summarization
 
-Long articles take time to read. A summarizer tries to give the short version
-without losing the main point. That sounds simple, but it is easy to make a bad
-summary: it can skip the important part, repeat too much, or sound right while
-missing context.
+Long news articles are useful, but nobody always has time to read the whole
+thing. A summarizer tries to do the same job a friend would do if you asked,
+"What happened here?"
 
-I built this project to check that problem in a practical way. I used news
-articles from CNN/DailyMail, compared a Transformer summarizer with simple
-baselines, measured the results, and plotted the scores.
+The hard part is that a short summary can still be bad. It might skip the main
+fact. It might copy the first few lines and miss the point. It might even sound
+right while saying something the article never said.
 
-I also built a small Transformer in NumPy. That part is there so I can explain
-what happens inside the model: attention, masking, encoder-decoder flow, and
-the final token scores.
+This repo is my way of testing that problem. I used CNN/DailyMail news
+articles, compared simple baselines with a Transformer summarizer, measured the
+results, and saved the tables and charts.
 
-Think of it like this: if a friend asks, "What was that long article about?",
-the model should give a short answer that still keeps the important facts. This
-project checks how close we get to that.
+I also wrote a small Transformer in NumPy. That part isn't meant to beat
+DistilBART or BART. It's there so I can explain what happens inside the model:
+attention, masks, encoder-decoder flow, and the final token scores.
 
-## Tiny Example
+## Made-Up Example
 
-This is a made-up example, just to explain the idea.
+This example is fictional. It's just here to make the idea clear.
 
-If a long article says a city opened a bus-delay dashboard, found two routes
-causing most evening delays, and plans to add more buses there, a weak summary
-might only say:
+Say an article says:
 
-> The city opened a bus dashboard.
+> A city made a dashboard for bus delays. The dashboard found that two routes
+> cause most evening delays, so the city plans to add more buses there.
 
-That is short, but it misses the useful part. A better summary would keep the
-main point:
+A weak summary might say:
 
-> The city is tracking bus delays and found two routes causing most evening
-> problems, so it plans to add buses there.
+> The city made a bus dashboard.
 
-That is what this project is really testing: not just "can it be short?", but
-"does it keep the part people came for?"
+That's short, but it misses the useful part.
 
-## How I Checked It
+A better summary would say:
 
-Machine/run details:
+> The city found two bus routes causing most evening delays and plans to add
+> more buses there.
+
+That's the real question in this project: did the summary keep the thing a
+reader came for?
+
+## What I Checked
+
+Main run:
 
 - Dataset: `abisee/cnn_dailymail`
 - Config: `1.0.0`
@@ -48,9 +51,10 @@ Machine/run details:
 - Transformer model: `sshleifer/distilbart-cnn-6-6`
 - Batch size for DistilBART: 2
 
-## Measured Results
+I also ran bigger baseline checks and a 50-example DistilBART review run. Those
+are saved separately so the small run doesn't pretend to be a full benchmark.
 
-Main checked run:
+## Main Result
 
 | Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Latency sec/ex | Ex/sec |
 |---|---:|---:|---:|---:|---:|---:|
@@ -59,22 +63,24 @@ Main checked run:
 | Lead-3 baseline | 0.3038 | 0.1212 | 0.2105 | 0.1727 | 0.0001 | 7350.4640 |
 | DistilBART CNN | 0.3470 | 0.1399 | 0.2442 | 0.1313 | 13.6741 | 0.0731 |
 
-DistilBART got the best ROUGE score in this run. It was also much slower on
-CPU. Lead-3 is still worth checking because news articles often put the main
-facts near the start.
+DistilBART scored best on ROUGE in this small run. It was also slow on CPU.
 
-The throughput chart uses a log scale. The lead baselines are just sentence
-slicing, so their speed is not directly comparable to neural model inference.
+Lead-3 is still a useful comparison. News articles often put the main facts
+near the start, so a simple "first three sentences" baseline can be harder to
+beat than it sounds.
 
-Larger supporting outputs:
+The speed chart uses a log scale because the lead baselines are just slicing
+sentences. That isn't the same kind of work as neural model inference.
 
-| Output | What it contains |
+## Bigger Evidence Files
+
+| File | What it proves |
 |---|---|
-| `outputs/tables/baseline_500_summary.csv` | 500-example Lead-1/2/3 benchmark |
+| `outputs/tables/baseline_500_summary.csv` | Lead-1/2/3 on 500 CNN/DailyMail examples |
 | `outputs/metrics/distilbart_50_review/` | 50-example DistilBART CPU run for review |
-| `outputs/error_analysis/distilbart_50_manual_review_template.csv` | 50-row manual error review sheet |
-| `outputs/content_discovery/distilbart_50/` | summary tags and similar-item candidates |
-| `outputs/tables/model_run_status.csv` | done/not-done status for larger model claims |
+| `outputs/error_analysis/distilbart_50_manual_review_template.csv` | 50 rows ready for manual error review |
+| `outputs/content_discovery/distilbart_50/` | tags and similar-item candidates from generated summaries |
+| `outputs/tables/model_run_status.csv` | which bigger claims are done and which are not |
 
 ## Charts
 
@@ -86,22 +92,18 @@ Larger supporting outputs:
 
 ![Latency per example](outputs/figures/latency_per_example.png)
 
-## Project Structure
+## Main Files
 
-| Path | Purpose |
+| Path | What it does |
 |---|---|
-| `src/hf_benchmark.py` | Runs the DistilBART benchmark on CNN/DailyMail rows |
+| `src/hf_benchmark.py` | Runs Hugging Face summarization models on CNN/DailyMail rows |
 | `src/run_benchmark_suite.py` | Runs repeatable multi-model benchmark suites |
-| `src/build_results.py` | Builds baseline results, summary tables, charts, and report |
-| `src/create_error_review_template.py` | Creates manual error review sheets |
-| `src/summarize_error_review.py` | Summarizes filled manual review sheets |
+| `src/build_results.py` | Builds baseline results, tables, charts, and reports |
+| `src/create_error_review_template.py` | Creates a manual review sheet |
+| `src/summarize_error_review.py` | Summarizes a filled review sheet |
 | `src/content_discovery.py` | Creates summary tags and similar-item candidates |
-| `src/scratch_transformer.py` | Mini Transformer from scratch in NumPy |
-| `src/metrics.py` | ROUGE-style and compression utilities |
-| `tests/` | Unit tests for metrics, data loading, and Transformer internals |
-| `outputs/tables/benchmark_summary.csv` | Main result table |
-| `outputs/figures/` | Generated charts |
-| `reports/final_report.md` | Short written result summary |
+| `src/scratch_transformer.py` | Small NumPy Transformer from scratch |
+| `tests/` | Unit tests |
 
 ## Run It
 
@@ -119,7 +121,7 @@ Run tests:
 python -m unittest discover -s tests
 ```
 
-Run the model benchmark:
+Run the small model benchmark:
 
 ```powershell
 python -m src.hf_benchmark --model sshleifer/distilbart-cnn-6-6 --dataset abisee/cnn_dailymail --config 1.0.0 --split test --sample-size 24 --batch-size 2 --max-new-tokens 96
@@ -131,21 +133,17 @@ Build tables and charts:
 python -m src.build_results --run-baselines --sample-size 24
 ```
 
-## What I Would Improve Next
+## What I Still Wouldn't Claim
 
-- Run the same comparison on a larger test sample.
-- Try BART-large-CNN or PEGASUS on a GPU.
-- Add factuality checks, because ROUGE mostly checks word overlap.
-- Add a small search/retrieval experiment to test whether summaries help item
-  discovery.
+I wouldn't call this a final summarization benchmark yet.
 
-## Notes
+Why:
 
-Compression ratio here means:
+- The neural model run is still small.
+- BART-large-CNN and PEGASUS are not run yet.
+- The manual error review sheet is created, but not filled.
+- The content-discovery bridge creates tags and neighbors, but it doesn't prove
+  search got better.
 
-```text
-summary tokens / article tokens
-```
-
-A lower compression ratio is not automatically better. A very short summary can
-miss important facts.
+The next real upgrade is a 500-example neural run on a GPU, then a filled
+50-example error review.

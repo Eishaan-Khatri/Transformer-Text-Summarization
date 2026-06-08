@@ -1,6 +1,10 @@
 # Summarization Results
 
-I ran this on `abisee/cnn_dailymail` with `24` test examples. This is a small CPU run. I use it to check the pipeline and compare methods on the same examples, not to pretend it is a final benchmark.
+I ran this on `abisee/cnn_dailymail` with `24` test examples.
+
+This is a small CPU run. It checks that the code, metrics, baselines, and charts work together.
+
+It is not a final benchmark.
 
 ## Metrics
 
@@ -21,10 +25,10 @@ I ran this on `abisee/cnn_dailymail` with `24` test examples. This is a small CP
 
 ![Latency per example](../outputs/figures/latency_per_example.png)
 
-## What I take from this run
+## What I Take From This Run
 
-- DistilBART got the best ROUGE numbers in this small run, but it was slow on CPU.
-- Lead baselines are useful because CNN/DailyMail articles often put important facts near the start.
-- Baseline throughput is simple sentence slicing, so it should not be read as model inference speed.
-- Compression ratio matters separately from ROUGE. A shorter summary is not automatically better.
-- I would run a larger sample before using these numbers as a main project claim.
+- DistilBART scored best on ROUGE in this small run.
+- It was also slow on CPU.
+- Lead-3 is still useful because news articles often start with the main facts.
+- Compression and ROUGE should be read together. A shorter summary is not automatically better.
+- The next serious step is a 500-example neural run on GPU.

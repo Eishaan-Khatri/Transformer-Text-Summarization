@@ -1,20 +1,19 @@
-# Content Platform Mapping
+# Content Discovery Mapping
 
-This project connects to content platforms because many platforms need short
-representations of long text.
+This project can connect to content discovery, but only in a careful way.
 
-Examples:
+Imagine a news or story app with thousands of long items. A user won't open
+everything. The app needs short signals: a title, a tag, a preview, or a small
+summary that helps people decide what to read next.
 
-- article cards,
-- story previews,
-- search snippets,
-- cold-start metadata,
-- editorial review queues.
+That is where summarization can help.
 
-The current project only proves summarization and measurement. It does not prove
-that summaries improve search or recommendations.
+But this repo does not prove search is better yet. It only builds the first
+step: summaries, tags, and similar-item candidates.
 
-The repo now has a small bridge script:
+## What Exists Now
+
+Run this after a model has created summaries:
 
 ```powershell
 python -m src.content_discovery `
@@ -29,16 +28,25 @@ It writes:
 - `summary_neighbors.csv`
 - `retrieval_summary.json`
 
-This is still not proof that search improves. It creates the structure needed
-for that test.
+## What It Means
 
-To test search properly, I would add:
+The script uses generated summaries to make simple tags and find nearby items.
 
-1. a small query set,
-2. an index built from titles only,
-3. an index built from titles plus summaries,
-4. Recall@K or MRR comparison,
-5. manual error analysis where summaries help or hurt.
+Fictional example:
 
-If category or genre labels are available, the script can compute labelled
-retrieval metrics with `--label-column`.
+If one summary is about "bus delays, city routes, evening traffic," a similar
+item might be another transport story. That could help a content platform group
+related items together.
+
+## What Is Still Missing
+
+To prove this helps discovery, I still need one of these:
+
+- topic labels,
+- genre labels,
+- editorial sections,
+- or a small query set.
+
+Then I can check metrics like Recall@K or MRR.
+
+Without labels or queries, this is a bridge, not proof.

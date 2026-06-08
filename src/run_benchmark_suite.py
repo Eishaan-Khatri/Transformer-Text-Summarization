@@ -101,7 +101,7 @@ def main() -> None:
     rows = load_summaries(output_dir)
     write_summary_table(rows, ROOT / args.table_output)
     plot_metric_bars(rows, ROOT / args.figures_output)
-    write_report(rows, ROOT / args.report_output)
+    write_report(rows, ROOT / args.report_output, ROOT / args.figures_output)
     manifest["finished_at_unix"] = time.time()
     manifest["summary_count"] = len(rows)
     manifest_path = output_dir / "benchmark_manifest.json"

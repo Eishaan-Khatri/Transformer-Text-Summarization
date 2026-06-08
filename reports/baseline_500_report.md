@@ -1,6 +1,8 @@
-# Summarization Results
+# 500-Example Baseline Results
 
-I ran this on `abisee/cnn_dailymail` with `500` test examples. This is a small CPU run. I use it to check the pipeline and compare methods on the same examples, not to pretend it is a final benchmark.
+I ran Lead baselines on `abisee/cnn_dailymail` with `500` test examples.
+
+This report sets a baseline before a bigger Transformer run.
 
 ## Metrics
 
@@ -12,18 +14,17 @@ I ran this on `abisee/cnn_dailymail` with `500` test examples. This is a small C
 
 ## Charts
 
-![ROUGE comparison](../outputs/figures/rouge_comparison.png)
+![ROUGE comparison](../outputs/figures/baseline_500/rouge_comparison.png)
 
-![Compression ratio](../outputs/figures/compression_ratio.png)
+![Compression ratio](../outputs/figures/baseline_500/compression_ratio.png)
 
-![CPU throughput](../outputs/figures/throughput.png)
+![CPU throughput](../outputs/figures/baseline_500/throughput.png)
 
-![Latency per example](../outputs/figures/latency_per_example.png)
+![Latency per example](../outputs/figures/baseline_500/latency_per_example.png)
 
-## What I take from this run
+## What I Take From This Run
 
-- DistilBART got the best ROUGE numbers in this small run, but it was slow on CPU.
-- Lead baselines are useful because CNN/DailyMail articles often put important facts near the start.
-- Baseline throughput is simple sentence slicing, so it should not be read as model inference speed.
-- Compression ratio matters separately from ROUGE. A shorter summary is not automatically better.
-- I would run a larger sample before using these numbers as a main project claim.
+- Lead-3 is the strongest Lead baseline here.
+- Lead-2 is close, with a lower compression ratio.
+- These baselines are very fast because they only slice sentences.
+- This gives a fairer baseline for a future Transformer run.

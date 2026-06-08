@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from .data import batch_records
-from .metrics import compression_ratio
+from .metrics import compression_ratio, tokenize
 
 
 def _load_optional_dependencies():
@@ -110,6 +110,7 @@ def run_model(
     references: list[str] = []
     rows: list[dict] = []
     start = time.perf_counter()
+    batch_latencies: list[float] = []
     for batch in batch_records(records, batch_size=batch_size):
         articles = [row["article"] for row in batch]
         tokenized = tokenizer(
@@ -119,6 +120,7 @@ def run_model(
             padding=True,
             return_tensors="pt",
         ).to(device)
+        batch_start = time.perf_counter()
         with torch.no_grad():
             generated = model.generate(
                 **tokenized,
@@ -126,6 +128,9 @@ def run_model(
                 num_beams=4,
                 no_repeat_ngram_size=3,
             )
+        batch_elapsed = time.perf_counter() - batch_start
+        per_example_latency = batch_elapsed / len(batch)
+        batch_latencies.extend([per_example_latency] * len(batch))
         decoded = tokenizer.batch_decode(generated, skip_special_tokens=True)
         for record, prediction in zip(batch, decoded):
             predictions.append(prediction)
@@ -133,9 +138,13 @@ def run_model(
             rows.append(
                 {
                     "id": record["id"],
+                    "article": record["article"],
                     "prediction": prediction,
                     "reference_summary": record["reference_summary"],
                     "compression_ratio": compression_ratio(record["article"], prediction),
+                    "article_tokens": len(tokenize(record["article"])),
+                    "prediction_tokens": len(tokenize(prediction)),
+                    "latency_seconds": per_example_latency,
                 }
             )
     elapsed_seconds = time.perf_counter() - start
@@ -152,6 +161,7 @@ def run_model(
         "device": device,
         "elapsed_seconds": elapsed_seconds,
         "examples_per_second": len(rows) / elapsed_seconds if elapsed_seconds else 0.0,
+        "average_latency_seconds": sum(batch_latencies) / len(batch_latencies) if batch_latencies else 0.0,
         "average_compression_ratio": avg_compression,
         **rouge_scores,
     }
@@ -160,7 +170,19 @@ def run_model(
     with (output_dir / f"{safe_model_name}_summary.json").open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
     with (output_dir / f"{safe_model_name}_examples.csv").open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=["id", "prediction", "reference_summary", "compression_ratio"])
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "id",
+                "article",
+                "prediction",
+                "reference_summary",
+                "compression_ratio",
+                "article_tokens",
+                "prediction_tokens",
+                "latency_seconds",
+            ],
+        )
         writer.writeheader()
         writer.writerows(rows)
     return summary

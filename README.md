@@ -50,12 +50,14 @@ Machine/run details:
 
 ## Measured Results
 
-| Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Ex/sec |
-|---|---:|---:|---:|---:|---:|
-| Lead-1 baseline | 0.2242 | 0.0787 | 0.1636 | 0.0558 | 5957.7003 |
-| Lead-2 baseline | 0.2860 | 0.1156 | 0.2110 | 0.1169 | 6679.8408 |
-| Lead-3 baseline | 0.3038 | 0.1212 | 0.2105 | 0.1727 | 7350.4640 |
-| DistilBART CNN | 0.3470 | 0.1399 | 0.2442 | 0.1313 | 0.0731 |
+Main checked run:
+
+| Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Latency sec/ex | Ex/sec |
+|---|---:|---:|---:|---:|---:|---:|
+| Lead-1 baseline | 0.2242 | 0.0787 | 0.1636 | 0.0558 | 0.0002 | 5957.7003 |
+| Lead-2 baseline | 0.2860 | 0.1156 | 0.2110 | 0.1169 | 0.0001 | 6679.8408 |
+| Lead-3 baseline | 0.3038 | 0.1212 | 0.2105 | 0.1727 | 0.0001 | 7350.4640 |
+| DistilBART CNN | 0.3470 | 0.1399 | 0.2442 | 0.1313 | 13.6741 | 0.0731 |
 
 DistilBART got the best ROUGE score in this run. It was also much slower on
 CPU. Lead-3 is still worth checking because news articles often put the main
@@ -63,6 +65,16 @@ facts near the start.
 
 The throughput chart uses a log scale. The lead baselines are just sentence
 slicing, so their speed is not directly comparable to neural model inference.
+
+Larger supporting outputs:
+
+| Output | What it contains |
+|---|---|
+| `outputs/tables/baseline_500_summary.csv` | 500-example Lead-1/2/3 benchmark |
+| `outputs/metrics/distilbart_50_review/` | 50-example DistilBART CPU run for review |
+| `outputs/error_analysis/distilbart_50_manual_review_template.csv` | 50-row manual error review sheet |
+| `outputs/content_discovery/distilbart_50/` | summary tags and similar-item candidates |
+| `outputs/tables/model_run_status.csv` | done/not-done status for larger model claims |
 
 ## Charts
 
@@ -72,12 +84,18 @@ slicing, so their speed is not directly comparable to neural model inference.
 
 ![CPU throughput](outputs/figures/throughput.png)
 
+![Latency per example](outputs/figures/latency_per_example.png)
+
 ## Project Structure
 
 | Path | Purpose |
 |---|---|
 | `src/hf_benchmark.py` | Runs the DistilBART benchmark on CNN/DailyMail rows |
+| `src/run_benchmark_suite.py` | Runs repeatable multi-model benchmark suites |
 | `src/build_results.py` | Builds baseline results, summary tables, charts, and report |
+| `src/create_error_review_template.py` | Creates manual error review sheets |
+| `src/summarize_error_review.py` | Summarizes filled manual review sheets |
+| `src/content_discovery.py` | Creates summary tags and similar-item candidates |
 | `src/scratch_transformer.py` | Mini Transformer from scratch in NumPy |
 | `src/metrics.py` | ROUGE-style and compression utilities |
 | `tests/` | Unit tests for metrics, data loading, and Transformer internals |

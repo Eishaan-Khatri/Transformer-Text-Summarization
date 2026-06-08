@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 from .hf_benchmark import load_records_from_viewer
 from .lead_baseline import lead_summary
-from .metrics import compression_ratio
+from .metrics import compression_ratio, tokenize
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +30,8 @@ def display_name(name: str) -> str:
         "lead_2_baseline": "Lead-2",
         "lead_3_baseline": "Lead-3",
         "sshleifer/distilbart-cnn-6-6": "DistilBART CNN",
+        "facebook/bart-large-cnn": "BART-large CNN",
+        "google/pegasus-cnn_dailymail": "PEGASUS CNN/DailyMail",
     }
     return names.get(name, name)
 
@@ -53,6 +55,7 @@ def run_lead_baselines(
     import evaluate
     import requests
 
+    output_dir.mkdir(parents=True, exist_ok=True)
     records = load_records_from_viewer(
         requests_module=requests,
         dataset_name=dataset_name,
@@ -86,15 +89,20 @@ def run_lead_baselines(
             "device": "cpu",
             "elapsed_seconds": elapsed,
             "examples_per_second": len(records) / elapsed if elapsed else 0.0,
+            "average_latency_seconds": elapsed / len(records) if records else 0.0,
             "average_compression_ratio": sum(compression_values) / len(compression_values),
             **rouge_scores,
         }
         example_rows = [
             {
                 "id": row["id"],
+                "article": row["article"],
                 "prediction": prediction,
                 "reference_summary": row["reference_summary"],
                 "compression_ratio": value,
+                "article_tokens": len(tokenize(row["article"])),
+                "prediction_tokens": len(tokenize(prediction)),
+                "latency_seconds": elapsed / len(records) if records else 0.0,
             }
             for row, prediction, value in zip(records, predictions, compression_values)
         ]
@@ -109,7 +117,12 @@ def load_summaries(output_dir: Path) -> list[dict]:
     rows: list[dict] = []
     for path in sorted(output_dir.glob("*_summary.json")):
         with path.open("r", encoding="utf-8") as handle:
-            rows.append(json.load(handle))
+            row = json.load(handle)
+        if "average_latency_seconds" not in row:
+            sample_size = row.get("sample_size") or 0
+            elapsed = row.get("elapsed_seconds") or 0
+            row["average_latency_seconds"] = elapsed / sample_size if sample_size else 0.0
+        rows.append(row)
     return rows
 
 
@@ -128,6 +141,7 @@ def write_summary_table(rows: list[dict], output_path: Path) -> None:
                 "rougeL": f"{row.get('rougeL', 0):.4f}",
                 "rougeLsum": f"{row.get('rougeLsum', 0):.4f}",
                 "compression_ratio": f"{row.get('average_compression_ratio', 0):.4f}",
+                "latency_seconds": f"{row.get('average_latency_seconds', 0):.4f}",
                 "examples_per_second": f"{row.get('examples_per_second', 0):.4f}",
                 "elapsed_seconds": f"{row.get('elapsed_seconds', 0):.2f}",
             }
@@ -178,14 +192,26 @@ def plot_metric_bars(rows: list[dict], output_dir: Path) -> None:
     plt.savefig(output_dir / "throughput.png", dpi=160)
     plt.close()
 
+    plt.figure(figsize=(8, 4.5))
+    plt.bar(labels, [row.get("average_latency_seconds", 0) for row in rows], color="#54A24B")
+    plt.xticks(rotation=20, ha="right")
+    plt.ylabel("Average seconds per example")
+    plt.yscale("log")
+    plt.title("Latency per example, log scale")
+    plt.tight_layout()
+    plt.savefig(output_dir / "latency_per_example.svg", metadata={"Date": None})
+    plt.savefig(output_dir / "latency_per_example.png", dpi=160)
+    plt.close()
+
 
 def markdown_table(rows: list[dict]) -> str:
-    header = "| Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Ex/sec |"
-    divider = "|---|---:|---:|---:|---:|---:|"
+    header = "| Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Latency sec/ex | Ex/sec |"
+    divider = "|---|---:|---:|---:|---:|---:|---:|"
     body = [
         (
             f"| {display_name(row['model_name'])} | {row.get('rouge1', 0):.4f} | {row.get('rouge2', 0):.4f} | "
             f"{row.get('rougeL', 0):.4f} | {row.get('average_compression_ratio', 0):.4f} | "
+            f"{row.get('average_latency_seconds', 0):.4f} | "
             f"{row.get('examples_per_second', 0):.4f} |"
         )
         for row in rows
@@ -218,6 +244,8 @@ def write_report(rows: list[dict], output_path: Path) -> None:
         "",
         "![CPU throughput](../outputs/figures/throughput.png)",
         "",
+        "![Latency per example](../outputs/figures/latency_per_example.png)",
+        "",
         "## What I take from this run",
         "",
         "- DistilBART got the best ROUGE numbers in this small run, but it was slow on CPU.",
@@ -238,6 +266,9 @@ def main() -> None:
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--run-baselines", action="store_true")
     parser.add_argument("--output-dir", default="outputs/metrics/full_benchmark")
+    parser.add_argument("--table-output", default="outputs/tables/benchmark_summary.csv")
+    parser.add_argument("--figures-output", default="outputs/figures")
+    parser.add_argument("--report-output", default="reports/final_report.md")
     args = parser.parse_args()
 
     output_dir = ROOT / args.output_dir
@@ -253,9 +284,9 @@ def main() -> None:
     rows = load_summaries(output_dir)
     if not rows:
         raise RuntimeError(f"No summary JSON files found in {output_dir}.")
-    write_summary_table(rows, ROOT / "outputs" / "tables" / "benchmark_summary.csv")
-    plot_metric_bars(rows, ROOT / "outputs" / "figures")
-    write_report(rows, ROOT / "reports" / "final_report.md")
+    write_summary_table(rows, ROOT / args.table_output)
+    plot_metric_bars(rows, ROOT / args.figures_output)
+    write_report(rows, ROOT / args.report_output)
     print(json.dumps({"models": [row["model_name"] for row in rows], "rows": len(rows)}, indent=2))
 
 

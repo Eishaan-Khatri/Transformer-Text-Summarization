@@ -1,0 +1,13 @@
+{
+  "examples": 50,
+  "embedding_type": "tfidf_over_generated_summaries",
+  "top_k": 5,
+  "label_evaluation": {
+    "available": false,
+    "reason": "no label column supplied"
+  },
+  "outputs": {
+    "tags": "outputs\\content_discovery\\distilbart_50\\summary_tags.csv",
+    "neighbors": "outputs\\content_discovery\\distilbart_50\\summary_neighbors.csv"
+  }
+}

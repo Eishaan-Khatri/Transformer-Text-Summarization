@@ -1,15 +1,14 @@
 # Summarization Results
 
-I ran this on `abisee/cnn_dailymail` with `24` test examples. This is a small CPU run. I use it to check the pipeline and compare methods on the same examples, not to pretend it is a final benchmark.
+I ran this on `abisee/cnn_dailymail` with `500` test examples. This is a small CPU run. I use it to check the pipeline and compare methods on the same examples, not to pretend it is a final benchmark.
 
 ## Metrics
 
 | Model | ROUGE-1 | ROUGE-2 | ROUGE-L | Compression | Latency sec/ex | Ex/sec |
 |---|---:|---:|---:|---:|---:|---:|
-| Lead-1 | 0.2242 | 0.0787 | 0.1636 | 0.0558 | 0.0002 | 5957.7003 |
-| Lead-2 | 0.2860 | 0.1156 | 0.2110 | 0.1169 | 0.0001 | 6679.8408 |
-| Lead-3 | 0.3038 | 0.1212 | 0.2105 | 0.1727 | 0.0001 | 7350.4640 |
-| DistilBART CNN | 0.3470 | 0.1399 | 0.2442 | 0.1313 | 13.6741 | 0.0731 |
+| Lead-1 | 0.2377 | 0.0785 | 0.1734 | 0.0554 | 0.0001 | 9881.2667 |
+| Lead-2 | 0.2981 | 0.1126 | 0.2058 | 0.1096 | 0.0001 | 10618.0783 |
+| Lead-3 | 0.3014 | 0.1187 | 0.2070 | 0.1612 | 0.0001 | 10151.2331 |
 
 ## Charts
 

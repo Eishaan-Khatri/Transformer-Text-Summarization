@@ -1,0 +1,18 @@
+{
+  "model_name": "lead_1_baseline",
+  "dataset": "abisee/cnn_dailymail",
+  "config": "1.0.0",
+  "split": "test",
+  "sample_size": 500,
+  "offset": 0,
+  "batch_size": 0,
+  "device": "cpu",
+  "elapsed_seconds": 0.05060080002294853,
+  "examples_per_second": 9881.266694859358,
+  "average_latency_seconds": 0.00010120160004589707,
+  "average_compression_ratio": 0.055384597723490685,
+  "rouge1": 0.23772876713831903,
+  "rouge2": 0.07849935261291327,
+  "rougeL": 0.1733996481222249,
+  "rougeLsum": 0.17327216944186413
+}
